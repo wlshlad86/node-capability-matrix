@@ -104,7 +104,7 @@ reachable from the phone over the same LAN or a tailnet, plus the OpenClaw iOS a
    openclaw gateway --port 18789
    ```
 2. **Install the app** — via TestFlight or an Apple build when a release enables it, or build from
-   source from `apps/ios` in Xcode.
+   source from `apps/ios` in Xcode. Full from-source walkthrough: [IOS-XCODE-SETUP.md](IOS-XCODE-SETUP.md).
 3. **Discover and connect** — in the app Settings, pick a gateway found on your LAN (Bonjour) or
    tailnet, or enable Manual Host and enter `host:port` (default `18789`).
 4. **Approve the pairing** on the gateway host:
