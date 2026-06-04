@@ -136,3 +136,9 @@ Derived from the open-source [OpenClaw](https://github.com/openclaw/openclaw) pr
 policy and the iOS/Android node clients) and the [OpenClaw documentation](https://docs.openclaw.ai/nodes).
 This is an independent reference and is not official OpenClaw documentation. OpenClaw names and marks
 belong to their respective owners.
+
+## License
+
+© 2026 Saer. This reference is licensed under [CC BY 4.0](LICENSE) — share and adapt with attribution.
+
+A designed, single-page version is published at https://saeronline.io/mobile-edge and mirrored here as [`index.html`](index.html) (GitHub Pages).

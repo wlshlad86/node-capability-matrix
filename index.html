@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Mobile Edge — a Saer field guide to governed agent capabilities</title>
+  <meta name="description" content="Every capability an agent gains at the mobile edge is also a governance surface. A Saer field guide to the full agent node command surface — and exactly how each command is gated. Built on the open-source OpenClaw node protocol." />
+  <meta name="robots" content="index,follow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" />
+  <script>document.documentElement.classList.add('js');</script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07090d;
+      --bg-2: #0d1118;
+      --panel: #111722;
+      --panel-2: #151d2b;
+      --ink: #f3f0e8;
+      --muted: #9ca7b7;
+      --soft: #667085;
+      --line: rgba(255,255,255,.11);
+      --line-strong: rgba(255,255,255,.2);
+      --accent: #d5ff73;
+      --accent-2: #6ee7d8;
+      --danger: #ff8a8a;
+      --warn: #ffd166;
+      --ok: #8cffb1;
+      --shadow: 0 30px 100px rgba(0,0,0,.45);
+      --radius: 22px;
+      --radius-sm: 14px;
+      --max: 1180px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 15% -10%, rgba(213,255,115,.16), transparent 34rem),
+        radial-gradient(circle at 90% 6%, rgba(110,231,216,.12), transparent 32rem),
+        linear-gradient(180deg, #07090d 0%, #090c11 52%, #050608 100%);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+    a { color: inherit; text-decoration: none; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .btn:focus-visible { outline-offset: 4px; }
+    .wrap { width: min(var(--max), calc(100% - 40px)); margin: 0 auto; }
+    code, .mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    .nav {
+      position: sticky; top: 0; z-index: 20;
+      backdrop-filter: blur(18px);
+      background: rgba(7,9,13,.72);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav-inner { height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { display: flex; align-items: center; gap: 11px; font-weight: 720; letter-spacing: -.03em; font-size: 18px; }
+    .mark {
+      width: 30px; height: 30px; border-radius: 10px;
+      border: 1px solid rgba(213,255,115,.55);
+      display: grid; place-items: center; color: var(--accent);
+      box-shadow: inset 0 0 24px rgba(213,255,115,.08); font-size: 14px;
+    }
+    .brand small { color: var(--soft); font-weight: 600; font-size: 12px; letter-spacing: 0; margin-left: 2px; }
+    .nav-links { display: flex; gap: 22px; color: var(--muted); font-size: 14px; }
+    .nav-links a:hover, .nav-links a:focus { color: var(--ink); }
+
+    .btn {
+      min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 0 18px; border-radius: 999px; border: 1px solid var(--line-strong);
+      font-weight: 680; font-size: 14px;
+      transition: transform .2s ease, border-color .2s ease, background .2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); border-color: rgba(255,255,255,.34); }
+    .btn.primary { background: var(--accent); color: #111407; border-color: transparent; }
+    .btn.secondary { background: rgba(255,255,255,.04); color: var(--ink); }
+
+    .hero { padding: 80px 0 38px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 10px; padding: 7px 12px;
+      border: 1px solid var(--line); border-radius: 999px; color: var(--muted);
+      background: rgba(255,255,255,.035); font-size: 13px; margin-bottom: 26px;
+    }
+    .dot { width: 7px; height: 7px; border-radius: 99px; background: var(--accent); box-shadow: 0 0 22px rgba(213,255,115,.8); }
+    h1 {
+      margin: 0; max-width: 940px;
+      font-size: clamp(40px, 6vw, 78px); font-weight: 800;
+      line-height: .95; letter-spacing: -.055em; text-wrap: balance;
+    }
+    .lead { margin: 26px 0 0; max-width: 720px; color: #bec7d4; font-size: clamp(18px, 2vw, 22px); line-height: 1.45; text-wrap: pretty; }
+    .attribution {
+      margin: 26px 0 0; max-width: 720px; color: var(--soft); font-size: 14px;
+      border-left: 2px solid rgba(110,231,216,.5); padding-left: 14px;
+    }
+    .attribution a { color: var(--accent-2); }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+
+    section { padding: 46px 0; }
+    .section-head { margin-bottom: 26px; }
+    .kicker { color: var(--accent); font-size: 13px; font-weight: 720; text-transform: uppercase; letter-spacing: .14em; }
+    h2 { margin: 8px 0 0; font-size: clamp(28px, 4vw, 46px); font-weight: 800; line-height: 1; letter-spacing: -.035em; max-width: 820px; text-wrap: balance; }
+    .section-copy { color: var(--muted); max-width: 740px; font-size: 16px; margin: 16px 0 0; }
+    h3 { letter-spacing: -.03em; }
+
+    .gates { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .gate {
+      border: 1px solid var(--line); background: rgba(255,255,255,.035);
+      border-radius: var(--radius); padding: 24px; position: relative;
+    }
+    .gate .num { color: var(--accent); font-size: 13px; font-weight: 760; margin-bottom: 16px; }
+    .gate h3 { margin: 0 0 10px; font-size: 20px; }
+    .gate p { margin: 0; color: var(--muted); font-size: 15px; }
+    .gate p code { color: var(--ink); }
+
+    .classes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .cls { border: 1px solid var(--line); background: rgba(255,255,255,.03); border-radius: var(--radius-sm); padding: 18px; }
+    .cls .tag { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+    .cls p { margin: 0; color: var(--muted); font-size: 13.5px; }
+    .pill { font-family: "JetBrains Mono", monospace; font-weight: 600; padding: 1px 8px; border-radius: 999px; font-size: 12px; border: 1px solid var(--line-strong); }
+    .pill.d { color: var(--ok); border-color: rgba(140,255,177,.4); background: rgba(140,255,177,.08); }
+    .pill.o { color: var(--warn); border-color: rgba(255,209,102,.4); background: rgba(255,209,102,.08); }
+    .pill.n { color: var(--soft); }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: #0c1119; }
+    table.matrix { border-collapse: collapse; width: 100%; min-width: 720px; font-size: 14px; }
+    table.matrix th, table.matrix td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    table.matrix thead th { position: sticky; top: 0; background: #0e141d; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; z-index: 1; }
+    table.matrix tbody tr:hover { background: rgba(255,255,255,.025); }
+    table.matrix td.cmd { font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--ink); line-height: 1.7; }
+    table.matrix td.cmd code { background: rgba(255,255,255,.05); padding: 1px 6px; border-radius: 6px; white-space: nowrap; }
+    table.matrix td.center { text-align: center; font-family: "JetBrains Mono", monospace; font-weight: 600; }
+    .d { color: var(--ok); } .o { color: var(--warn); } .na { color: var(--soft); }
+    table.matrix td.req { color: var(--muted); }
+    .group-row td { background: rgba(110,231,216,.05); color: var(--accent-2); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; }
+    .legend { display: flex; flex-wrap: wrap; gap: 18px; margin: 14px 2px 0; color: var(--muted); font-size: 13px; }
+    .legend span { display: inline-flex; align-items: center; gap: 7px; }
+
+    .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .panel { border: 1px solid var(--line); background: rgba(255,255,255,.035); border-radius: var(--radius); padding: 24px; }
+    .panel h3 { margin: 0 0 12px; font-size: 19px; }
+    .panel p { color: var(--muted); margin: 0 0 12px; font-size: 15px; }
+    .list { margin: 0; padding: 0; list-style: none; display: grid; gap: 11px; }
+    .list li { display: flex; gap: 10px; color: #c2cad6; font-size: 15px; }
+    .list li::before { content: ""; width: 7px; height: 7px; border-radius: 99px; background: var(--accent-2); margin-top: 8px; flex: 0 0 auto; }
+    .list code { color: var(--ink); font-size: 13px; }
+
+    .errs { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    .err { background: #0c1119; padding: 18px 20px; }
+    .err code { color: var(--warn); font-size: 13px; }
+    .err span { display: block; color: var(--muted); font-size: 14px; margin-top: 6px; }
+
+    .prereq { border: 1px solid rgba(110,231,216,.3); background: rgba(110,231,216,.05); border-radius: var(--radius); padding: 18px 22px; margin-bottom: 16px; color: #c2cad6; font-size: 15px; }
+    .prereq b { color: var(--ink); }
+    .setup { display: grid; gap: 12px; }
+    .setup-step { display: grid; grid-template-columns: 40px 1fr; gap: 16px; align-items: start; border: 1px solid var(--line); background: rgba(255,255,255,.03); border-radius: var(--radius); padding: 20px 22px; min-width: 0; }
+    .setup-step .badge { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; font-weight: 760; color: var(--accent); border: 1px solid rgba(213,255,115,.4); background: rgba(213,255,115,.06); }
+    .setup-step h3 { margin: 0 0 6px; font-size: 18px; }
+    .setup-step p { margin: 0; color: var(--muted); font-size: 15px; }
+    .setup-step p code { color: var(--ink); }
+    .setup-step > div { min-width: 0; }
+    .cli { display: block; margin-top: 12px; background: #080c12; border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 12px 14px; font-family: "JetBrains Mono", monospace; font-size: 13px; line-height: 1.7; color: #d7e0ec; overflow-x: auto; white-space: pre; }
+
+    .lens {
+      margin: 8px 0; border: 1px solid rgba(213,255,115,.25); border-radius: 28px;
+      padding: clamp(26px, 4vw, 44px);
+      background: radial-gradient(circle at 88% 0%, rgba(213,255,115,.16), transparent 30rem), linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.025));
+    }
+    .lens h2 { max-width: 760px; }
+    .lens p { color: #c2cad6; max-width: 720px; font-size: 17px; margin: 18px 0 0; }
+    .lens .map { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 26px; }
+    .lens .map div { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 16px; background: rgba(5,8,12,.4); }
+    .lens .map b { display: block; color: var(--accent); font-size: 13px; margin-bottom: 6px; }
+    .lens .map span { color: var(--muted); font-size: 13.5px; }
+
+    .cta { margin: 40px 0 80px; border: 1px solid rgba(213,255,115,.25); border-radius: 34px; padding: clamp(28px, 5vw, 56px);
+      background: radial-gradient(circle at 90% 0%, rgba(213,255,115,.18), transparent 32rem), linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; }
+    .cta h2 { margin: 0; } .cta p { color: var(--muted); max-width: 640px; margin: 14px 0 0; }
+
+    footer { border-top: 1px solid var(--line); padding: 28px 0 46px; color: var(--soft); font-size: 13px; }
+    .footer-inner { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+    footer a { color: var(--muted); } footer a:hover { color: var(--ink); }
+
+    /* Let grid items shrink below content min-content so 1fr tracks cannot
+       overflow on narrow viewports; allow long command tokens to break. */
+    .gate, .cls, .panel, .err { min-width: 0; overflow-wrap: anywhere; }
+    .gate code, .cls code, .panel code, .err code, .list code { overflow-wrap: anywhere; word-break: break-word; }
+
+    @media (max-width: 980px) {
+      .gates, .twocol, .classes, .errs, .cta, .lens .map { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+    .js [data-reveal] { opacity: 0; transform: translateY(20px); transition: opacity .7s cubic-bezier(.2,.6,.2,1), transform .7s cubic-bezier(.2,.6,.2,1); }
+    .js [data-reveal].is-in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } .js [data-reveal] { opacity: 1 !important; transform: none !important; } }
+  </style>
+</head>
+<body>
+  <nav class="nav" aria-label="Main navigation">
+    <div class="wrap nav-inner">
+      <a class="brand" href="https://saeronline.io/" aria-label="Saer home"><span class="mark" aria-hidden="true">S</span>Saer <small>/ field guide</small></a>
+      <div class="nav-links" aria-label="Sections">
+        <a href="#gates">Two gates</a>
+        <a href="#matrix">The matrix</a>
+        <a href="#connect">Connect a node</a>
+        <a href="#foreground">Foreground</a>
+        <a href="#lens">The Saer lens</a>
+      </div>
+      <a class="btn secondary" href="mailto:hello@saeronline.io?subject=Saer%20design%20partner">Become a design partner</a>
+    </div>
+  </nav>
+
+  <main id="top">
+    <header class="hero wrap">
+      <div class="eyebrow"><span class="dot"></span> Saer field guide</div>
+      <h1>Every capability an agent gains at the edge is also a governance surface.</h1>
+      <p class="lead">When an agent reaches a phone, it can see, hear, speak, locate, and render. The interesting question is not what it <em>can</em> do — it is what it is <em>allowed</em> to do, where, and under whose permission. This is the full agent node command surface, and exactly how each command is gated.</p>
+      <p class="attribution">Built on <a href="https://github.com/openclaw/openclaw" rel="noopener">OpenClaw</a>, the open-source agent gateway. Every command, platform, and gate below is verified against its node command policy and the iOS and Android node clients. Full reference: <a href="https://docs.openclaw.ai/nodes/capability-matrix" rel="noopener">docs.openclaw.ai</a>.</p>
+      <div class="hero-actions">
+        <a class="btn primary" href="#matrix">Jump to the matrix</a>
+        <a class="btn secondary" href="#lens">Why Saer cares</a>
+      </div>
+    </header>
+
+    <section id="gates" class="wrap">
+      <div class="section-head">
+        <div class="kicker">How access is decided</div>
+        <h2>Two gates stand between an agent and a device.</h2>
+        <p class="section-copy">A node advertises a command surface; the gateway decides what an agent may actually invoke. A command runs only when both gates pass — which means capability and permission are separate facts, by design.</p>
+      </div>
+      <div class="gates" data-reveal>
+        <article class="gate">
+          <div class="num">Gate 01</div>
+          <h3>Declaration</h3>
+          <p>The device lists the command during its handshake — and only when the matching capability is enabled and the OS permission is granted. The phone decides what it is willing to offer.</p>
+        </article>
+        <article class="gate">
+          <div class="num">Gate 02</div>
+          <h3>Gateway policy</h3>
+          <p>The platform allowlist must permit the declared command. <code>allowCommands</code> adds capability; <code>denyCommands</code> removes it and always wins. The operator decides what is permitted.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="wrap">
+      <div class="section-head">
+        <div class="kicker">Gating classes</div>
+        <h2>Not all capability is equal.</h2>
+      </div>
+      <div class="classes" data-reveal>
+        <div class="cls"><span class="tag"><span class="pill d">D</span> Default</span><p>Allowed out of the box for the platform. The device still needs the capability enabled and the OS permission granted.</p></div>
+        <div class="cls"><span class="tag"><span class="pill o">O</span> Opt-in · high risk</span><p>Blocked until explicitly added to <code>allowCommands</code>: camera capture, screen recording, contact and calendar writes, SMS.</p></div>
+        <div class="cls"><span class="tag"><span class="pill n">—</span> Not exposed</span><p>The platform does not offer the command at all. Absence is the strongest gate.</p></div>
+        <div class="cls"><span class="tag">Capability gated</span><p>Advertised only when the user enables the feature, or the hardware supports it.</p></div>
+        <div class="cls"><span class="tag">Permission gated</span><p>Returns an error until the matching OS permission is granted on the device.</p></div>
+        <div class="cls"><span class="tag">Trusted talk</span><p>Push-to-talk is allowed by default only for nodes that advertise the <code>talk</code> capability.</p></div>
+      </div>
+    </section>
+
+    <section id="matrix" class="wrap">
+      <div class="section-head">
+        <div class="kicker">The matrix · mobile nodes</div>
+        <h2>iOS and Android: the full command surface.</h2>
+        <p class="section-copy">The two mobile clients share most of the surface and differ deliberately. iOS has no whole-device screenshot — its visual snapshot is the in-app canvas. Android exposes messaging and call-log surfaces iOS does not.</p>
+      </div>
+      <div class="table-wrap" data-reveal>
+        <table class="matrix">
+          <thead>
+            <tr><th>Command</th><th>iOS</th><th>Android</th><th>Foreground</th><th>Device requirement</th></tr>
+          </thead>
+          <tbody>
+            <tr class="group-row"><td colspan="5">Render and see</td></tr>
+            <tr><td class="cmd"><code>canvas.present</code> <code>canvas.hide</code> <code>canvas.navigate</code> <code>canvas.eval</code> <code>canvas.snapshot</code> <code>canvas.a2ui.*</code></td><td class="center d">D</td><td class="center d">D</td><td>iOS, Android</td><td class="req">A2UI needs the canvas host configured</td></tr>
+            <tr><td class="cmd"><code>screen.snapshot</code></td><td class="center na">—</td><td class="center na">—</td><td class="na">—</td><td class="req">Desktop only; on mobile use <code>canvas.snapshot</code></td></tr>
+            <tr><td class="cmd"><code>screen.record</code></td><td class="center o">O</td><td class="center na">—</td><td>iOS</td><td class="req">Screen-recording permission (in-app capture)</td></tr>
+            <tr><td class="cmd"><code>camera.list</code></td><td class="center d">D</td><td class="center d">D</td><td>iOS, Android</td><td class="req">Camera enabled</td></tr>
+            <tr><td class="cmd"><code>camera.snap</code> <code>camera.clip</code></td><td class="center o">O</td><td class="center o">O</td><td>iOS, Android</td><td class="req">Camera enabled + OS permission</td></tr>
+            <tr class="group-row"><td colspan="5">Sense the world</td></tr>
+            <tr><td class="cmd"><code>location.get</code></td><td class="center d">D</td><td class="center d">D</td><td>iOS: bg needs Always</td><td class="req">Location enabled + OS permission</td></tr>
+            <tr><td class="cmd"><code>talk.ptt.start</code> <code>talk.ptt.stop</code> <code>talk.ptt.cancel</code> <code>talk.ptt.once</code></td><td class="center d">D</td><td class="center d">D</td><td>iOS</td><td class="req">Talk capability (trusted node)</td></tr>
+            <tr><td class="cmd"><code>motion.activity</code> <code>motion.pedometer</code></td><td class="center d">D</td><td class="center d">D</td><td class="na">—</td><td class="req">Motion sensors + permission</td></tr>
+            <tr class="group-row"><td colspan="5">Personal data</td></tr>
+            <tr><td class="cmd"><code>device.status</code> <code>device.info</code></td><td class="center d">D</td><td class="center d">D</td><td class="na">—</td><td class="req">None</td></tr>
+            <tr><td class="cmd"><code>device.permissions</code> <code>device.health</code></td><td class="center na">—</td><td class="center d">D</td><td class="na">—</td><td class="req">None</td></tr>
+            <tr><td class="cmd"><code>device.apps</code></td><td class="center na">—</td><td class="center d">D</td><td class="na">—</td><td class="req">Installed Apps sharing</td></tr>
+            <tr><td class="cmd"><code>notifications.list</code> <code>notifications.actions</code></td><td class="center na">—</td><td class="center d">D</td><td class="na">—</td><td class="req">Notification access</td></tr>
+            <tr><td class="cmd"><code>photos.latest</code></td><td class="center d">D</td><td class="center d">D</td><td class="na">—</td><td class="req">Photos permission</td></tr>
+            <tr><td class="cmd"><code>contacts.search</code></td><td class="center d">D</td><td class="center d">D</td><td class="na">—</td><td class="req">Contacts permission</td></tr>
+            <tr><td class="cmd"><code>contacts.add</code></td><td class="center o">O</td><td class="center o">O</td><td class="na">—</td><td class="req">Contacts permission</td></tr>
+            <tr><td class="cmd"><code>calendar.events</code></td><td class="center d">D</td><td class="center d">D</td><td class="na">—</td><td class="req">Calendar permission</td></tr>
+            <tr><td class="cmd"><code>calendar.add</code></td><td class="center o">O</td><td class="center o">O</td><td class="na">—</td><td class="req">Calendar permission</td></tr>
+            <tr><td class="cmd"><code>reminders.list</code></td><td class="center d">D</td><td class="center na">—</td><td class="na">—</td><td class="req">Reminders permission</td></tr>
+            <tr><td class="cmd"><code>reminders.add</code></td><td class="center o">O</td><td class="center na">—</td><td class="na">—</td><td class="req">Reminders permission</td></tr>
+            <tr><td class="cmd"><code>callLog.search</code></td><td class="center na">—</td><td class="center d">D</td><td class="na">—</td><td class="req">Call-log permission</td></tr>
+            <tr><td class="cmd"><code>sms.send</code> <code>sms.search</code></td><td class="center na">—</td><td class="center o">O</td><td class="na">—</td><td class="req">SMS permission + telephony</td></tr>
+            <tr><td class="cmd"><code>system.notify</code></td><td class="center d">D</td><td class="center d">D</td><td class="na">—</td><td class="req">Notification permission</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="legend">
+        <span><span class="pill d">D</span> Default-allowed</span>
+        <span><span class="pill o">O</span> Opt-in (high risk)</span>
+        <span><span class="pill n">—</span> Not exposed / not applicable</span>
+      </div>
+      <p class="section-copy" style="margin-top:18px">The iOS node also declares <code>chat.push</code> and <code>watch.status</code> / <code>watch.notify</code> (Apple Watch); those are owned by their respective surfaces rather than the core node allowlist.</p>
+    </section>
+
+    <section class="wrap">
+      <div class="section-head">
+        <div class="kicker">The matrix · desktop and headless</div>
+        <h2>The same protocol, a different body.</h2>
+        <p class="section-copy">A node is a companion device, not a special mobile layer. The macOS app in node mode carries the richest surface; a headless host carries almost none.</p>
+      </div>
+      <div class="twocol" data-reveal>
+        <div class="panel">
+          <h3>macOS node mode</h3>
+          <p>The menubar app acting as a node exposes the broadest surface:</p>
+          <ul class="list">
+            <li><code>canvas.*</code>, <code>camera.list</code> (default) with <code>camera.snap</code> / <code>camera.clip</code> (opt-in)</li>
+            <li><code>location.get</code>, a real <code>screen.snapshot</code> of the display, plus <code>screen.record</code> (opt-in)</li>
+            <li><code>system.run</code> / <code>system.which</code>, exec approvals, and <code>browser.proxy</code></li>
+          </ul>
+          <p style="margin-top:14px">Exec, browser-proxy, and screen snapshot are desktop-host commands: held back until the node is connected and declared, and <code>system.run</code> is further gated by exec approvals (ask / allowlist / full).</p>
+        </div>
+        <div class="panel">
+          <h3>Headless node host</h3>
+          <p><code>openclaw node run</code> on Linux, Windows, or macOS exposes only:</p>
+          <ul class="list">
+            <li><code>system.run</code> and <code>system.which</code></li>
+            <li><code>system.execApprovals.get</code> / <code>system.execApprovals.set</code></li>
+            <li>plus any plugin-provided node-host commands</li>
+          </ul>
+          <p style="margin-top:14px">No canvas, no camera, no sensors. When a body has no senses, the gate is the absence of the command itself.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="foreground" class="wrap">
+      <div class="section-head">
+        <div class="kicker">Foreground and background</div>
+        <h2>A phone is not an always-on server.</h2>
+        <p class="section-copy">The platform itself is a gate. The OS, not the operator, decides when an agent may reach through.</p>
+      </div>
+      <div class="twocol" data-reveal>
+        <div class="panel">
+          <h3>iOS</h3>
+          <ul class="list">
+            <li>Requires the app foregrounded for <code>canvas.*</code>, <code>camera.*</code>, <code>screen.*</code>, and <code>talk.*</code>. Background invokes return <code>NODE_BACKGROUND_UNAVAILABLE</code>.</li>
+            <li><code>location.get</code> works in the background only when the location permission is set to Always; otherwise <code>LOCATION_BACKGROUND_UNAVAILABLE</code>.</li>
+            <li>Voice wake is a separate capability and is best effort while backgrounded.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Android</h3>
+          <ul class="list">
+            <li>Requires the foreground for <code>canvas.*</code> (including A2UI) and <code>camera.*</code>.</li>
+            <li>Other commands, including <code>talk.ptt.*</code>, run in the background — a deliberate difference from iOS.</li>
+            <li>Personal-data commands stay subject to OS permission and the platform wake budget.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap">
+      <div class="section-head">
+        <div class="kicker">When a gate refuses</div>
+        <h2>The error codes are the governance, made legible.</h2>
+      </div>
+      <div class="errs" data-reveal>
+        <div class="err"><code>command not allowlisted</code> / <code>not declared by node</code><span>One of the two gates failed. Check the platform allowlist and the node command list.</span></div>
+        <div class="err"><code>NODE_BACKGROUND_UNAVAILABLE</code><span>Bring the node app to the foreground.</span></div>
+        <div class="err"><code>LOCATION_BACKGROUND_UNAVAILABLE</code><span>Set the location permission to Always for background reads.</span></div>
+        <div class="err"><code>LOCATION_DISABLED</code> / <code>LOCATION_PERMISSION_REQUIRED</code><span>Enable Location in Settings and grant the OS permission.</span></div>
+        <div class="err"><code>*_PERMISSION_REQUIRED</code><span>Grant the matching OS permission (camera, SMS, and so on) on the device.</span></div>
+        <div class="err"><code>SYSTEM_RUN_DENIED</code><span>The exec approval policy rejected the run.</span></div>
+      </div>
+    </section>
+
+    <section id="connect" class="wrap">
+      <div class="section-head">
+        <div class="kicker">Get started</div>
+        <h2>Connect your iOS node in five steps.</h2>
+        <p class="section-copy">A phone is a node, not a gateway: it connects to a gateway you run, and pairing is approved by you, never bypassed. That approval is Gate 02 in practice.</p>
+      </div>
+      <div data-reveal>
+        <div class="prereq"><b>You will need:</b> a machine running the OpenClaw gateway (macOS, Linux, or Windows via WSL2) reachable from the phone over the same LAN or a tailnet, plus the OpenClaw iOS app.</div>
+        <div class="setup">
+          <article class="setup-step"><div class="badge">1</div><div><h3>Run a gateway</h3><p>On your Mac, Linux box, or WSL2. The phone connects to this.</p><code class="cli">openclaw gateway --port 18789</code></div></article>
+          <article class="setup-step"><div class="badge">2</div><div><h3>Install the app</h3><p>Via TestFlight or an Apple build when a release enables it, or build from source from <code>apps/ios</code> in Xcode.</p></div></article>
+          <article class="setup-step"><div class="badge">3</div><div><h3>Discover and connect</h3><p>In the app Settings, pick a gateway found on your LAN (Bonjour) or tailnet, or enable Manual Host and enter <code>host:port</code> (default <code>18789</code>).</p></div></article>
+          <article class="setup-step"><div class="badge">4</div><div><h3>Approve the pairing</h3><p>On the gateway host, approve the device. Nothing connects until you do.</p><code class="cli">openclaw devices list
+openclaw devices approve &lt;requestId&gt;</code></div></article>
+          <article class="setup-step"><div class="badge">5</div><div><h3>Verify</h3><p>Confirm the node is paired and online. The matrix commands are now invokable, subject to the gating above.</p><code class="cli">openclaw nodes status</code></div></article>
+        </div>
+        <p class="section-copy" style="margin-top:18px">Full install, discovery, and troubleshooting: <a href="https://docs.openclaw.ai/platforms/ios" rel="noopener" style="color:var(--accent-2)">the OpenClaw iOS app guide</a>.</p>
+      </div>
+    </section>
+
+    <section id="lens" class="wrap">
+      <div class="lens" data-reveal>
+        <div class="kicker">The Saer lens</div>
+        <h2>This is one device. Now multiply it by every agent, tool, and node you run.</h2>
+        <p>The matrix above governs a single phone, through one gateway, with a handful of config keys. That model holds for one device. It does not hold for a company where dozens of agents touch tools, data, memory, and decisions — each with its own allowlist, its own approvals, its own logs. Saer is building the layer where this kind of governance is native, not re-invented per agent: permission, evidence, review, and consequence as one operating surface.</p>
+        <div class="map">
+          <div><b>Two gates → permission</b><span>Capability and authority kept as separate facts, everywhere — not just on one device.</span></div>
+          <div><b>Opt-in &amp; deny → review</b><span>High-stakes actions become proposed state until the right authority accepts them.</span></div>
+          <div><b>Error codes → consequence</b><span>A refusal carries a reason. Every action carries intent, evidence, and outcome.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="access" class="wrap">
+      <div class="cta" data-reveal>
+        <div>
+          <div class="kicker">Private preview</div>
+          <h2>Building agents that act at the edge?</h2>
+          <p>Saer is the governed operating layer for agent-heavy companies — pre-product, building with a small number of founders already living the problem. If capability is getting ahead of your control, let’s talk.</p>
+        </div>
+        <a class="btn primary" href="mailto:hello@saeronline.io?subject=Saer%20design%20partner%20%E2%80%94%20mobile%20edge">Become a design partner</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap footer-inner">
+      <div>© Saer. A field guide from <a href="https://saeronline.io/">saeronline.io</a>.</div>
+      <div>Built on the open-source <a href="https://github.com/openclaw/openclaw" rel="noopener">OpenClaw</a> node protocol · <a href="https://docs.openclaw.ai/nodes/capability-matrix" rel="noopener">full reference</a></div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var els = document.querySelectorAll('[data-reveal]');
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduce || !('IntersectionObserver' in window)) {
+        for (var i = 0; i < els.length; i++) els[i].classList.add('is-in');
+        return;
+      }
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
+        });
+      }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+      els.forEach(function (el) { io.observe(el); });
+    })();
+  </script>
+</body>
+</html>
