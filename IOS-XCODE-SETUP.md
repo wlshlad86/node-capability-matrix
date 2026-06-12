@@ -73,20 +73,28 @@ In Xcode:
 First run on a device: on the iPhone, trust the developer profile under
 **Settings → General → VPN & Device Management**.
 
-### If signing fails (personal Apple team)
+### If signing fails
 
-The default bundle IDs (`ai.openclaw.client*`) are probably taken on a personal team. Make them
-unique:
+Usually you don't need to touch signing at all: `pnpm ios:open` / `pnpm ios:gen` run
+`scripts/ios-configure-signing.sh`, which detects your Apple Team ID from Xcode and writes a
+git-ignored `apps/ios/.local-signing.xcconfig` with **Automatic** signing and **unique
+per-developer bundle IDs** (`ai.openclaw.ios.test.<you>-<teamid>`), overriding the repo defaults
+(`ai.openclaw.client*`). Personal-team bundle-ID collisions are handled for you.
+
+If the script warns `Unable to detect an Apple Team ID` (no Apple account signed into Xcode yet),
+or you want explicit control, set signing manually:
 
 ```bash
 cp apps/ios/LocalSigning.xcconfig.example apps/ios/LocalSigning.xcconfig
 ```
 
-Edit `apps/ios/LocalSigning.xcconfig`:
+Edit `apps/ios/LocalSigning.xcconfig` (it overrides both the repo defaults and the auto-generated
+`.local-signing.xcconfig`):
 
 - Set `OPENCLAW_DEVELOPMENT_TEAM` to your Team ID (Xcode → Settings → Accounts).
-- Change each bundle ID to something unique, e.g. `ai.openclaw.client` → `com.yourname.openclaw.client`
-  (and the matching `.share`, `.activitywidget`, `.watchkitapp*` ones).
+- On a personal team, also change each bundle ID to something unique, e.g.
+  `ai.openclaw.client` → `com.yourname.openclaw.client` (and the matching `.share`,
+  `.activitywidget`, `.watchkitapp*` ones).
 
 Then regenerate and run again:
 
@@ -122,11 +130,11 @@ pnpm ios:gen
 Foreground the app first (most commands are blocked in background). Then, from the gateway host:
 
 ```bash
-# snapshot the in-app canvas
-pnpm openclaw nodes canvas snapshot --node "<id-or-name>" --format png
+# snapshot the in-app canvas (canvas has no CLI subcommand; drive it via `nodes invoke`)
+pnpm openclaw nodes invoke --node "<id-or-name>" --command canvas.snapshot --params '{"format":"png"}'
 
 # get location (enable Location in the app first)
-pnpm openclaw nodes invoke --node "<id-or-name>" --command location.get --params '{}'
+pnpm openclaw nodes location get --node "<id-or-name>"
 ```
 
 What's available and how each command is gated: see the [Node Capability Matrix](README.md) or
